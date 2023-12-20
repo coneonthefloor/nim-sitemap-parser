@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="//www.coillte.ie/wp-content/plugins/wordpress-seo/css/main-sitemap.xsl"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	<sitemap>
+		<loc>http://localhost:8080/non-nested/sitemap.xml</loc>
+		<lastmod>2023-12-10T12:33:29+00:00</lastmod>
+	</sitemap>
+</sitemapindex>

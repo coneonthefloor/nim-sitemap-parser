@@ -1,7 +1,7 @@
 import q, xmltree, httpclient, strutils, logging, asyncdispatch, system
 
 type
-  Frequency = enum
+  Frequency* = enum
     always = "always"
     hourly = "hourly"
     daily = "daily"
@@ -11,19 +11,29 @@ type
     never = "never"
 
   SitemapIndexEntry = object
-    loc: string
-    lastmod: string
+    loc*: string
+    lastmod*: string
 
   SitemapEntry = object
-    loc: string
-    lastmod: string
-    changefreq: Frequency
-    priority: float32
+    loc*: string
+    lastmod*: string
+    changefreq*: Frequency
+    priority*: float32
 
-  Sitemap = object
-    loc: string
-    lastmod: string
-    entries: seq[SitemapEntry]
+  Sitemap* = object
+    loc*: string
+    lastmod*: string
+    entries*: seq[SitemapEntry]
+
+proc hasURLSet(sitemapContent: string): bool =
+  let doc = q(sitemapContent)
+  let urlset = doc.select("urlset")
+  return len(urlset) > 0
+
+proc hasSitemapIndex(sitemapContent: string): bool =
+  let doc = q(sitemapContent)
+  let sitemapindex = doc.select("sitemapindex")
+  return len(sitemapindex) > 0
 
 proc getSitemapContent(sitemapUri: string): Future[string] {.async.} =
   var client = newAsyncHttpClient()
@@ -84,16 +94,6 @@ proc getSitemapEntries(sitemapContent: string): seq[SitemapEntry] =
 
     result.add(entry)
 
-proc isURLSet(sitemapContent: string): bool =
-  let doc = q(sitemapContent)
-  let urlset = doc.select("urlset")
-  return len(urlset) > 0
-
-proc isSitemapIndex(sitemapContent: string): bool =
-  let doc = q(sitemapContent)
-  let sitemapindex = doc.select("sitemapindex")
-  return len(sitemapindex) > 0
-
 proc parseSitemap*(
     sitemapURI: string; lastMod: string = ""; isNestedCall: bool = false
 ): Future[seq[Sitemap]] {.async.} =
@@ -102,7 +102,7 @@ proc parseSitemap*(
     log(lvlError, "No content recieved from: " & sitemapURI)
     return
 
-  let urlsetFound = isURLSet(content)
+  let urlsetFound = hasURLSet(content)
   if urlsetFound:
     var sitemap: Sitemap
     sitemap.loc = sitemapURI
@@ -111,7 +111,7 @@ proc parseSitemap*(
     result.add(sitemap)
     return result
 
-  let sitemapIndexFound = isSitemapIndex(content)
+  let sitemapIndexFound = hasSitemapIndex(content)
   if sitemapIndexFound and not isNestedCall:
     var futs: seq[Future[seq[Sitemap]]]
     for entry in getSitemapIndexEntries(content):
@@ -126,11 +126,3 @@ proc parseSitemap*(
       lvlError,
       "Invalid sitemap, no <urlset/> or <sitemapindex/> found at: " & sitemapURI,
     )
-
-var testsitemapURI = "https://coneonthefloor.com/sitemap.xml"
-# var testsitemapURI = "https://www.coillte.ie/sitemap_index.xml"
-
-when isMainModule:
-  var sitemaps: seq[Sitemap] = waitFor parseSitemap(testsitemapURI)
-  for sitemap in sitemaps:
-    echo("Name: " & sitemap.loc & ", urls count: " & intToStr(len(sitemap.entries)))

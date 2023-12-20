@@ -22,6 +22,26 @@
                 "isDefault": true
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Run test server",
+            "command": "nim",
+            "args": [
+                "c",
+                "-o:${workspaceRoot}/bin/server",
+                "-d:ssl",
+                "-r",
+                "server.nim"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}/tests"
+            },
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
         }
     ]
 }
